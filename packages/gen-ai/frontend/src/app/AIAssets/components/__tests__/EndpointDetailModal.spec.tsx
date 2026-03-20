@@ -14,12 +14,24 @@ jest.mock('~/app/hooks/useGenerateMaaSToken', () => ({
   default: () => mockUseGenerateMaaSToken(),
 }));
 
+jest.mock('~/app/hooks/useFetchMaaSSubscriptions', () => ({
+  __esModule: true,
+  default: (modelID: string) => mockUseFetchMaaSSubscriptions(modelID),
+}));
+
 let mockUseGenerateMaaSToken: jest.Mock = jest.fn(() => ({
   isGenerating: false,
   tokenData: null,
   error: null,
   generateToken: mockGenerateToken,
   resetToken: mockResetToken,
+}));
+
+let mockUseFetchMaaSSubscriptions: jest.Mock = jest.fn(() => ({
+  data: [],
+  loaded: true,
+  error: null,
+  refresh: jest.fn(),
 }));
 
 jest.mock('~/app/utilities/utils', () => ({
@@ -58,6 +70,12 @@ describe('EndpointDetailModal', () => {
       error: null,
       generateToken: mockGenerateToken,
       resetToken: mockResetToken,
+    }));
+    mockUseFetchMaaSSubscriptions = jest.fn(() => ({
+      data: [],
+      loaded: true,
+      error: null,
+      refresh: jest.fn(),
     }));
   });
 
@@ -218,6 +236,162 @@ describe('EndpointDetailModal', () => {
       renderModal(model);
 
       expect(screen.getByTestId('endpoint-modal-generate-api-key')).toBeDisabled();
+    });
+
+    describe('Subscriptions', () => {
+      it('should show subscription section when MaaS model has subscriptions', () => {
+        mockUseFetchMaaSSubscriptions = jest.fn(() => ({
+          data: [
+            {
+              id: 'sub-1',
+              name: 'Basic Subscription',
+              description: 'Basic tier',
+              model_id: 'test-model-id',
+              active: true,
+            },
+            {
+              id: 'sub-2',
+              name: 'Premium Subscription',
+              description: 'Premium tier',
+              model_id: 'test-model-id',
+              active: true,
+            },
+          ],
+          loaded: true,
+          error: null,
+          refresh: jest.fn(),
+        }));
+
+        const model = createMockModel({
+          model_source_type: 'maas',
+          externalEndpoint: 'https://api.example.com/v1',
+        });
+        renderModal(model);
+
+        expect(screen.getByText('Subscription')).toBeInTheDocument();
+        expect(screen.getByText(/MaaS models require a subscription header/)).toBeInTheDocument();
+        expect(screen.getByTestId('endpoint-modal-subscription-select')).toBeInTheDocument();
+      });
+
+      it('should select first active subscription by default', () => {
+        mockUseFetchMaaSSubscriptions = jest.fn(() => ({
+          data: [
+            {
+              id: 'sub-basic',
+              name: 'Basic Subscription',
+              description: 'Basic tier',
+              model_id: 'test-model-id',
+              active: true,
+            },
+          ],
+          loaded: true,
+          error: null,
+          refresh: jest.fn(),
+        }));
+
+        const model = createMockModel({
+          model_source_type: 'maas',
+          externalEndpoint: 'https://api.example.com/v1',
+        });
+        renderModal(model);
+
+        const select = screen.getByTestId(
+          'endpoint-modal-subscription-select',
+        ) as HTMLSelectElement;
+        expect(select.value).toBe('sub-basic');
+      });
+
+      it('should show subscription header when subscription is selected', () => {
+        mockUseFetchMaaSSubscriptions = jest.fn(() => ({
+          data: [
+            {
+              id: 'sub-premium',
+              name: 'Premium Subscription',
+              description: 'Premium tier',
+              model_id: 'test-model-id',
+              active: true,
+            },
+          ],
+          loaded: true,
+          error: null,
+          refresh: jest.fn(),
+        }));
+
+        const model = createMockModel({
+          model_source_type: 'maas',
+          externalEndpoint: 'https://api.example.com/v1',
+        });
+        renderModal(model);
+
+        expect(
+          screen.getByText('Copy the subscription header for your curl command:'),
+        ).toBeInTheDocument();
+        expect(screen.getByTestId('endpoint-modal-subscription-header')).toBeInTheDocument();
+        expect(screen.getByText('-H "x-subscription-id: sub-premium"')).toBeInTheDocument();
+      });
+
+      it('should show info alert when no subscriptions are available', () => {
+        mockUseFetchMaaSSubscriptions = jest.fn(() => ({
+          data: [],
+          loaded: true,
+          error: null,
+          refresh: jest.fn(),
+        }));
+
+        const model = createMockModel({
+          model_source_type: 'maas',
+          externalEndpoint: 'https://api.example.com/v1',
+        });
+        renderModal(model);
+
+        expect(screen.getByText('No subscriptions available')).toBeInTheDocument();
+        expect(
+          screen.getByText(/You don't have any active subscriptions for this model/),
+        ).toBeInTheDocument();
+      });
+
+      it('should show error alert when subscriptions fail to load', () => {
+        mockUseFetchMaaSSubscriptions = jest.fn(() => ({
+          data: [],
+          loaded: true,
+          error: new Error('Failed to load subscriptions'),
+          refresh: jest.fn(),
+        }));
+
+        const model = createMockModel({
+          model_source_type: 'maas',
+          externalEndpoint: 'https://api.example.com/v1',
+        });
+        renderModal(model);
+
+        expect(screen.getByText('Unable to load subscriptions')).toBeInTheDocument();
+        expect(screen.getByText('Failed to load subscriptions')).toBeInTheDocument();
+      });
+
+      it('should not show subscription section for non-MaaS models', () => {
+        mockUseFetchMaaSSubscriptions = jest.fn(() => ({
+          data: [
+            {
+              id: 'sub-1',
+              name: 'Basic Subscription',
+              description: 'Basic tier',
+              model_id: 'test-model-id',
+              active: true,
+            },
+          ],
+          loaded: true,
+          error: null,
+          refresh: jest.fn(),
+        }));
+
+        const model = createMockModel({
+          model_source_type: 'namespace',
+          internalEndpoint: 'http://internal',
+        });
+        renderModal(model);
+
+        expect(screen.queryByText('Subscription')).not.toBeInTheDocument();
+      });
     });
   });
 

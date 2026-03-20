@@ -30,6 +30,20 @@ func (r *MaaSModelsRepository) ListModels(ctx context.Context, apiKey string) ([
 	return client.ListModels(ctx, apiKey)
 }
 
+// ListSubscriptions retrieves all available subscriptions for a specific MaaS model.
+// The MaaS client is expected to be in the context (created by AttachMaaSClient middleware).
+// apiKey must be a valid MaaS API key obtained via IssueToken.
+// modelID is the ID of the model to fetch subscriptions for.
+func (r *MaaSModelsRepository) ListSubscriptions(ctx context.Context, apiKey string, modelID string) ([]models.MaaSSubscription, error) {
+	// Get ready-to-use MaaS client from context using helper
+	client, err := helper.GetContextMaaSClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return client.ListSubscriptions(ctx, apiKey, modelID)
+}
+
 // IssueToken creates a new ephemeral token with specified TTL.
 // The MaaS client is expected to be in the context (created by AttachMaaSClient middleware).
 func (r *MaaSModelsRepository) IssueToken(ctx context.Context, request models.MaaSTokenRequest) (*models.MaaSTokenResponse, error) {

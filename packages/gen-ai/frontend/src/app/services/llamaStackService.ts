@@ -647,6 +647,7 @@ export const getMCPServerTools = modArchRestGET<MCPToolsStatus>('/mcp/tools');
 
 /** MaaS Endpoints */
 export const getMaaSModels = modArchRestGET<MaaSModel[]>('/maas/models');
+export const getMaaSSubscriptions = modArchRestGET<MaaSSubscription[]>('/maas/subscriptions');
 export const generateMaaSToken = modArchRestCREATE<MaaSTokenResponse, MaaSTokenRequest>(
   '/maas/tokens',
 );

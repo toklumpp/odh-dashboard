@@ -50,8 +50,9 @@ const (
 	ExternalVectorStoresPath = ApiPathPrefix + "/vectorstores/external"
 
 	// Model as a Service (MaaS) endpoints
-	MaaSModelsPath = ApiPathPrefix + "/maas/models"
-	MaaSTokensPath = ApiPathPrefix + "/maas/tokens"
+	MaaSModelsPath        = ApiPathPrefix + "/maas/models"
+	MaaSSubscriptionsPath = ApiPathPrefix + "/maas/subscriptions"
+	MaaSTokensPath        = ApiPathPrefix + "/maas/tokens"
 
 	// MLflow endpoints
 	MLflowPromptsPath        = ApiPathPrefix + "/mlflow/prompts"

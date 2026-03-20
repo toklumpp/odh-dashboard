@@ -89,6 +89,46 @@ func (c *HTTPMaaSClient) ListModels(ctx context.Context, apiKey string) ([]model
 	return response.Data, nil
 }
 
+// ListSubscriptions retrieves all available subscriptions for a specific model from the MaaS API.
+// apiKey must be a valid MaaS API key obtained via IssueToken.
+// modelID is the ID of the model to fetch subscriptions for.
+func (c *HTTPMaaSClient) ListSubscriptions(ctx context.Context, apiKey string, modelID string) ([]models.MaaSSubscription, error) {
+	url := fmt.Sprintf("%s/v1/subscriptions?model_id=%s", c.baseURL, modelID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		// Handle connection failures gracefully
+		return nil, NewConnectionError(c.baseURL, fmt.Sprintf("failed to connect to MaaS service: %v", err))
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, NewInvalidResponseError(c.baseURL, fmt.Sprintf("failed to read response body: %v", err))
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode >= 500 {
+			return nil, NewServerUnavailableError(c.baseURL)
+		}
+		return nil, NewInvalidResponseError(c.baseURL, fmt.Sprintf("API request failed with status %d: %s", resp.StatusCode, string(body)))
+	}
+
+	var response models.MaaSSubscriptionsResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, NewInvalidResponseError(c.baseURL, fmt.Sprintf("failed to unmarshal response: %v", err))
+	}
+
+	return response.Data, nil
+}
+
 // IssueToken creates a new API key via the MaaS API
 func (c *HTTPMaaSClient) IssueToken(ctx context.Context, request models.MaaSTokenRequest) (*models.MaaSTokenResponse, error) {
 	url := fmt.Sprintf("%s/v1/api-keys", c.baseURL)

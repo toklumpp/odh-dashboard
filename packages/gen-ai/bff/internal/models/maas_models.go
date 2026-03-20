@@ -33,3 +33,18 @@ type MaaSTokenResponse struct {
 	Key       string `json:"key"`
 	ExpiresAt string `json:"expiresAt,omitempty"`
 }
+
+// MaaSSubscription represents a subscription available for a MaaS model
+type MaaSSubscription struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	ModelID     string `json:"model_id"`
+	Active      bool   `json:"active"`
+}
+
+// MaaSSubscriptionsResponse represents the response structure for listing subscriptions
+type MaaSSubscriptionsResponse struct {
+	Object string             `json:"object"`
+	Data   []MaaSSubscription `json:"data"`
+}

@@ -81,6 +81,34 @@ func (m *MockMaaSClient) ListModels(ctx context.Context, apiKey string) ([]model
 	}, nil
 }
 
+// ListSubscriptions returns mock subscription data for a specific model
+func (m *MockMaaSClient) ListSubscriptions(ctx context.Context, apiKey string, modelID string) ([]models.MaaSSubscription, error) {
+	// Return mock subscriptions based on the model ID
+	return []models.MaaSSubscription{
+		{
+			ID:          "sub-" + modelID + "-basic",
+			Name:        "Basic Subscription",
+			Description: "Basic tier subscription for " + modelID,
+			ModelID:     modelID,
+			Active:      true,
+		},
+		{
+			ID:          "sub-" + modelID + "-premium",
+			Name:        "Premium Subscription",
+			Description: "Premium tier subscription for " + modelID,
+			ModelID:     modelID,
+			Active:      true,
+		},
+		{
+			ID:          "sub-" + modelID + "-enterprise",
+			Name:        "Enterprise Subscription",
+			Description: "Enterprise tier subscription for " + modelID,
+			ModelID:     modelID,
+			Active:      false,
+		},
+	}, nil
+}
+
 // IssueToken returns a mock API key response
 func (m *MockMaaSClient) IssueToken(ctx context.Context, request models.MaaSTokenRequest) (*models.MaaSTokenResponse, error) {
 	return &models.MaaSTokenResponse{

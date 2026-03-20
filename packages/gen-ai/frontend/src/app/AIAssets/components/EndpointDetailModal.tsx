@@ -9,6 +9,9 @@ import {
   ContentVariants,
   Flex,
   FlexItem,
+  FormGroup,
+  FormSelect,
+  FormSelectOption,
   Modal,
   ModalBody,
   ModalFooter,
@@ -20,6 +23,7 @@ import { InfoCircleIcon } from '@patternfly/react-icons';
 import { Link } from 'react-router-dom';
 import { AIModel } from '~/app/types';
 import useGenerateMaaSToken from '~/app/hooks/useGenerateMaaSToken';
+import useFetchMaaSSubscriptions from '~/app/hooks/useFetchMaaSSubscriptions';
 import { copyToClipboardWithTracking } from '~/app/utilities/utils';
 import { maasTokensPath } from '~/app/utilities/routes';
 
@@ -34,6 +38,25 @@ const EndpointDetailModal: React.FC<EndpointDetailModalProps> = ({ model, onClos
   const isMaaS = model.model_source_type === 'maas';
 
   const { isGenerating, tokenData, error, generateToken, resetToken } = useGenerateMaaSToken();
+
+  // Fetch subscriptions for MaaS models
+  const {
+    data: subscriptions,
+    loaded: subscriptionsLoaded,
+    error: subscriptionsError,
+  } = useFetchMaaSSubscriptions(isMaaS ? model.model_id : '');
+
+  const [selectedSubscription, setSelectedSubscription] = React.useState<string>('');
+
+  // Set the first active subscription as default when data loads
+  React.useEffect(() => {
+    if (subscriptionsLoaded && subscriptions.length > 0 && !selectedSubscription) {
+      const activeSubscription = subscriptions.find((sub) => sub.active);
+      if (activeSubscription) {
+        setSelectedSubscription(activeSubscription.id);
+      }
+    }
+  }, [subscriptions, subscriptionsLoaded, selectedSubscription]);
 
   const handleEndpointCopy = (endpoint: string, endpointType: 'external' | 'internal') =>
     copyToClipboardWithTracking(endpoint, 'Available Endpoints Endpoint Copied', {
@@ -211,6 +234,114 @@ const EndpointDetailModal: React.FC<EndpointDetailModalProps> = ({ model, onClos
                   </FlexItem>
                 )}
               </Flex>
+            </FlexItem>
+          )}
+
+          {isMaaS && subscriptionsLoaded && subscriptions.length > 0 && (
+            <FlexItem>
+              <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
+                <FlexItem>
+                  <Content
+                    component={ContentVariants.p}
+                    style={{ fontWeight: 'var(--pf-t--global--font--weight--body--bold)' }}
+                  >
+                    Subscription
+                  </Content>
+                </FlexItem>
+
+                <FlexItem>
+                  <Content component={ContentVariants.small}>
+                    MaaS models require a subscription header in your API requests. Select your
+                    subscription below and include it in your curl command.
+                  </Content>
+                </FlexItem>
+
+                <FlexItem>
+                  <FormGroup label="Available subscriptions" fieldId="subscription-select">
+                    <FormSelect
+                      value={selectedSubscription}
+                      onChange={(_event, value) =>
+                        setSelectedSubscription(typeof value === 'string' ? value : '')
+                      }
+                      aria-label="Select subscription"
+                      data-testid="endpoint-modal-subscription-select"
+                    >
+                      <FormSelectOption
+                        key="placeholder"
+                        value=""
+                        label="Select a subscription"
+                        isDisabled
+                      />
+                      {subscriptions.map((sub) => (
+                        <FormSelectOption
+                          key={sub.id}
+                          value={sub.id}
+                          label={`${sub.name}${!sub.active ? ' (Inactive)' : ''}`}
+                          isDisabled={!sub.active}
+                        />
+                      ))}
+                    </FormSelect>
+                  </FormGroup>
+                </FlexItem>
+
+                {selectedSubscription && (
+                  <FlexItem>
+                    <Flex
+                      direction={{ default: 'column' }}
+                      spaceItems={{ default: 'spaceItemsSm' }}
+                    >
+                      <FlexItem>
+                        <Content component={ContentVariants.small}>
+                          Copy the subscription header for your curl command:
+                        </Content>
+                      </FlexItem>
+                      <FlexItem>
+                        <ClipboardCopy
+                          isReadOnly
+                          data-testid="endpoint-modal-subscription-header"
+                          hoverTip="Copy subscription header"
+                          clickTip="Copied"
+                          aria-label="Subscription header for curl command"
+                          onCopy={() =>
+                            copyToClipboardWithTracking(
+                              `-H "x-subscription-id: ${selectedSubscription}"`,
+                              'Available Endpoints Subscription Copied',
+                              {
+                                assetType: 'maas_model',
+                                copyTarget: 'subscription_header',
+                              },
+                            )
+                          }
+                        >
+                          {`-H "x-subscription-id: ${selectedSubscription}"`}
+                        </ClipboardCopy>
+                      </FlexItem>
+                    </Flex>
+                  </FlexItem>
+                )}
+              </Flex>
+            </FlexItem>
+          )}
+
+          {isMaaS && subscriptionsLoaded && subscriptions.length === 0 && (
+            <FlexItem>
+              <Alert
+                variant={AlertVariant.info}
+                title="No subscriptions available"
+                isInline
+                customIcon={<InfoCircleIcon />}
+              >
+                You don&apos;t have any active subscriptions for this model. Contact your
+                administrator to request access.
+              </Alert>
+            </FlexItem>
+          )}
+
+          {isMaaS && subscriptionsError && (
+            <FlexItem>
+              <Alert variant={AlertVariant.warning} title="Unable to load subscriptions" isInline>
+                {subscriptionsError.message}
+              </Alert>
             </FlexItem>
           )}
         </Flex>

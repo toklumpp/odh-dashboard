@@ -364,6 +364,9 @@ func (app *App) Routes() http.Handler {
 	// Models (MaaS)
 	apiRouter.GET(constants.MaaSModelsPath, app.AttachNamespace(app.RequireAccessToService(app.AttachMaaSClient(app.MaaSModelsHandler))))
 
+	// Subscriptions (MaaS)
+	apiRouter.GET(constants.MaaSSubscriptionsPath, app.AttachNamespace(app.RequireAccessToService(app.AttachMaaSClient(app.MaaSSubscriptionsHandler))))
+
 	// Tokens (MaaS)
 	apiRouter.POST(constants.MaaSTokensPath, app.AttachNamespace(app.RequireAccessToService(app.AttachMaaSClient(app.MaaSIssueTokenHandler))))
 	apiRouter.DELETE(constants.MaaSTokensPath, app.AttachNamespace(app.RequireAccessToService(app.AttachMaaSClient(app.MaaSRevokeAllTokensHandler))))

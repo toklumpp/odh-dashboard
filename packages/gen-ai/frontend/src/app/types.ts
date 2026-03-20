@@ -516,6 +516,7 @@ export type GenAiAPIs = {
   deleteLSD: DeleteLSD;
   getAAModels: GetAAModels;
   getMaaSModels: GetMaaSModels;
+  getMaaSSubscriptions: GetMaaSSubscriptions;
   generateMaaSToken: GenerateMaaSToken;
   getMCPServerTools: GetMCPServerTools;
   getMCPServers: GetMCPServers;
@@ -544,6 +545,19 @@ export interface MaaSModel {
   description?: string;
   usecase?: string;
   model_type?: 'llm' | 'embedding';
+}
+
+export interface MaaSSubscription {
+  id: string;
+  name: string;
+  description?: string;
+  model_id: string;
+  active: boolean;
+}
+
+export interface MaaSSubscriptionsResponse {
+  object: string;
+  data: MaaSSubscription[];
 }
 
 export type MaaSTokenRequest = {
@@ -589,6 +603,7 @@ type InstallLSD = ModArchRestCREATE<LlamaStackDistributionModel, InstallLSDReque
 type DeleteLSD = ModArchRestDELETE<string, DeleteLSDRequest>;
 type GetAAModels = ModArchRestGET<AAModelResponse[]>;
 type GetMaaSModels = ModArchRestGET<MaaSModel[]>;
+type GetMaaSSubscriptions = ModArchRestGET<MaaSSubscription[]>;
 type GenerateMaaSToken = ModArchRestCREATE<MaaSTokenResponse, MaaSTokenRequest>;
 type GetMCPServerTools = ModArchRestGET<MCPToolsStatus>;
 type GetMCPServers = ModArchRestGET<MCPServersResponse>;
