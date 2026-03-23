@@ -251,8 +251,8 @@ const EndpointDetailModal: React.FC<EndpointDetailModalProps> = ({ model, onClos
 
                 <FlexItem>
                   <Content component={ContentVariants.small}>
-                    MaaS models require a subscription header in your API requests. Select your
-                    subscription below and include it in your curl command.
+                    Include a subscription in your request to access this endpoint. Copy the header
+                    name and value below.
                   </Content>
                 </FlexItem>
 
@@ -291,11 +291,6 @@ const EndpointDetailModal: React.FC<EndpointDetailModalProps> = ({ model, onClos
                       spaceItems={{ default: 'spaceItemsSm' }}
                     >
                       <FlexItem>
-                        <Content component={ContentVariants.small}>
-                          Copy the subscription header for your curl command:
-                        </Content>
-                      </FlexItem>
-                      <FlexItem>
                         <ClipboardCopy
                           isReadOnly
                           data-testid="endpoint-modal-subscription-header"
@@ -315,6 +310,12 @@ const EndpointDetailModal: React.FC<EndpointDetailModalProps> = ({ model, onClos
                         >
                           {`-H "x-subscription-id: ${selectedSubscription}"`}
                         </ClipboardCopy>
+                      </FlexItem>
+                      <FlexItem>
+                        <Content component={ContentVariants.small}>
+                          This header is required when have access to more than one subscription.
+                          You can find your subscription names. on the Playground page.
+                        </Content>
                       </FlexItem>
                     </Flex>
                   </FlexItem>
