@@ -678,7 +678,6 @@ export interface ApiError {
     tool_name?: string;
     retriable: boolean;
   };
-  message?: string;
 }
 
 // Legacy type aliases for backwards compatibility
