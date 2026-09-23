@@ -177,6 +177,23 @@ describe('ChatbotMessageInput', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    window.localStorage.removeItem('playground-image-capability-alert-dismissed');
+  });
+
+  it('shows image capability guidance and remembers the opt-out', async () => {
+    const user = userEvent.setup();
+    render(
+      <ChatbotMessageInput
+        {...defaultProps}
+        imageUploadState={{ ...defaultImageUploadState, fileName: 'photo.png' }}
+        showImageCapabilityAlert
+      />,
+    );
+
+    expect(screen.getByTestId('image-capability-alert')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: "Don't show this again" }));
+    expect(screen.queryByTestId('image-capability-alert')).not.toBeInTheDocument();
+    expect(window.localStorage.getItem('playground-image-capability-alert-dismissed')).toBe('true');
   });
 
   it('renders the message bar', () => {

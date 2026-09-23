@@ -4,17 +4,19 @@ import {
   FormGroup,
   HelperText,
   HelperTextItem,
+  Label,
+  List,
+  ListItem,
   MenuToggle,
+  Modal,
+  ModalBody,
+  ModalHeader,
   Select,
   SelectList,
   SelectOption,
   Spinner,
-  Tooltip,
 } from '@patternfly/react-core';
-import { MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
-
-type CSSCustomProperties = { [key: `--${string}`]: string | number };
-type ExtendedCSSProperties = React.CSSProperties & CSSCustomProperties;
+import { MinusCircleIcon, PencilAltIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import { fireMiscTrackingEvent } from '@odh-dashboard/internal/concepts/analyticsTracking/segmentIOUtils';
 import FieldGroupHelpLabelIcon from '@odh-dashboard/ui-core/components/FieldGroupHelpLabelIcon';
 import { ChatbotContext } from '~/app/context/ChatbotContext';
@@ -58,6 +60,7 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
   const updateAsrModelEnabled = useChatbotConfigStore((s) => s.updateAsrModelEnabled);
 
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isAllModelsOpen, setIsAllModelsOpen] = React.useState(false);
   const [staleWarning, setStaleWarning] = React.useState(false);
 
   const selectContainerRef = React.useRef<HTMLDivElement>(null);
@@ -65,32 +68,20 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
 
   const modelsLoaded = aiModelsLoaded && maasModelsLoaded;
 
-  // Combined effect: auto-select (N=1) + stale detection, gated on modelsLoaded
   React.useEffect(() => {
     if (!isAsrModelEnabled || !modelsLoaded) {
       return;
     }
 
     // Stale: selected model no longer exists in the available list
-    if (selectedAsrModel && !asrModels.some((m) => m.model_id === selectedAsrModel)) {
+    if (selectedAsrModel && !allModels.some((m) => m.model_id === selectedAsrModel)) {
       updateSelectedAsrModel(configId, '');
       setStaleWarning(true);
-      return;
-    }
-
-    // Auto-select when exactly one model available and none selected
-    if (asrModels.length === 1 && !selectedAsrModel) {
-      updateSelectedAsrModel(configId, asrModels[0].model_id);
-      setStaleWarning(false);
-      fireMiscTrackingEvent(PLAYGROUND_MULTIMODAL_EVENTS.ASR_MODEL_SELECTED, {
-        modelName: asrModels[0].display_name || asrModels[0].model_id,
-        isDefaultModel: true,
-      });
     }
   }, [
     isAsrModelEnabled,
     modelsLoaded,
-    asrModels,
+    allModels,
     selectedAsrModel,
     configId,
     updateSelectedAsrModel,
@@ -123,15 +114,16 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
       if (typeof value === 'string') {
         updateSelectedAsrModel(configId, value);
         setStaleWarning(false);
-        const model = asrModels.find((m) => m.model_id === value);
+        const model = allModels.find((m) => m.model_id === value);
         fireMiscTrackingEvent(PLAYGROUND_MULTIMODAL_EVENTS.ASR_MODEL_SELECTED, {
           modelName: model?.display_name || value,
           isDefaultModel: false,
         });
       }
       setIsOpen(false);
+      setIsAllModelsOpen(false);
     },
-    [configId, updateSelectedAsrModel, asrModels],
+    [configId, updateSelectedAsrModel, allModels],
   );
 
   const getSelectedDisplayName = (models: AIModel[], modelId: string): string => {
@@ -147,51 +139,8 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
     );
   }
 
-  // State 1: Add button (disabled with tooltip when N=0 ASR models)
-  if (!isAsrModelEnabled) {
-    const noModelsAvailable = asrModels.length === 0;
-    const disabledLinkStyle: ExtendedCSSProperties = {
-      '--pf-v6-c-button--disabled--BackgroundColor': 'transparent',
-      '--pf-v6-c-button--disabled--Color': 'var(--pf-t--global--text--color--subtle)',
-      '--pf-v6-c-button--disabled__icon--Color': 'currentColor',
-    };
-    const addButton = (
-      <Button
-        ref={addButtonRef}
-        variant="link"
-        icon={<PlusCircleIcon />}
-        onClick={handleEnable}
-        isAriaDisabled={noModelsAvailable}
-        data-testid="add-transcription-model-btn"
-        aria-label="Add audio transcription model"
-        style={noModelsAvailable ? disabledLinkStyle : undefined}
-      >
-        Add audio transcription model
-      </Button>
-    );
-
-    return (
-      <div
-        className="pf-v6-u-p-md pf-v6-u-mt-md"
-        style={{
-          border: '1px dashed var(--pf-t--global--border--color--default)',
-          borderRadius: 'var(--pf-t--global--border--radius--small)',
-          textAlign: 'center',
-        }}
-        data-testid="transcription-model-add-section"
-      >
-        {noModelsAvailable ? (
-          <Tooltip content="Deploy an ASR model to enable audio transcription">{addButton}</Tooltip>
-        ) : (
-          addButton
-        )}
-      </div>
-    );
-  }
-
-  // State 2/2b: Enabled section
   const toggleLabel = selectedAsrModel
-    ? getSelectedDisplayName(asrModels, selectedAsrModel)
+    ? getSelectedDisplayName(allModels, selectedAsrModel)
     : 'Select a transcription model';
 
   const mainModelDisplayName = selectedMainModel
@@ -206,21 +155,6 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
         </HelperTextItem>
       );
     }
-    if (asrModels.length === 0) {
-      return (
-        <HelperTextItem>
-          No ASR models available.{' '}
-          <a
-            href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Deploy an ASR model
-          </a>{' '}
-          to enable audio transcription.
-        </HelperTextItem>
-      );
-    }
     if (selectedAsrModel && mainModelDisplayName) {
       return (
         <HelperTextItem>
@@ -230,6 +164,59 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
     }
     return null;
   })();
+
+  const allModelsModal = (
+    <Modal isOpen={isAllModelsOpen} onClose={() => setIsAllModelsOpen(false)} variant="medium">
+      <ModalHeader title="Select transcription model" />
+      <ModalBody>
+        <List isPlain>
+          {[...asrModels, ...allModels.filter((m) => !asrModels.includes(m))].map((model) => (
+            <ListItem key={model.model_id}>
+              <Button
+                variant="link"
+                onClick={() => {
+                  updateAsrModelEnabled(configId, true);
+                  handleSelect(undefined, model.model_id);
+                }}
+                data-testid={`all-model-option-${model.model_id}`}
+              >
+                {model.display_name || model.model_id}
+              </Button>{' '}
+              {asrModels.includes(model) && <Label color="blue">Recommended</Label>}
+            </ListItem>
+          ))}
+        </List>
+      </ModalBody>
+    </Modal>
+  );
+
+  if (!isAsrModelEnabled) {
+    return (
+      <>
+        <div className="pf-v6-u-p-md pf-v6-u-mt-md" data-testid="transcription-model-add-section">
+          {asrModels.length > 0 ? (
+            <Button
+              ref={addButtonRef}
+              variant="link"
+              icon={<PlusCircleIcon />}
+              onClick={handleEnable}
+              data-testid="add-transcription-model-btn"
+            >
+              Add audio transcription model
+            </Button>
+          ) : (
+            <>
+              No models are tagged for audio transcription.{' '}
+              <Button variant="link" isInline onClick={() => setIsAllModelsOpen(true)}>
+                View all models
+              </Button>
+            </>
+          )}
+        </div>
+        {allModelsModal}
+      </>
+    );
+  }
 
   return (
     <FormGroup
@@ -274,8 +261,18 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
           </SelectList>
         </Select>
       </div>
+      <Button
+        variant="link"
+        isInline
+        icon={selectedAsrModel && asrModels.length === 0 ? <PencilAltIcon /> : undefined}
+        onClick={() => setIsAllModelsOpen(true)}
+      >
+        {selectedAsrModel && asrModels.length === 0
+          ? 'Edit transcription model'
+          : 'View all models'}
+      </Button>
       {selectedAsrModel &&
-        asrModels.find((m) => m.model_id === selectedAsrModel)?.model_source_type === 'maas' && (
+        allModels.find((m) => m.model_id === selectedAsrModel)?.model_source_type === 'maas' && (
           <SubscriptionDropdown
             selectedModel={selectedAsrModel}
             selectedSubscription={selectedAsrSubscription}
@@ -300,6 +297,7 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
       >
         Remove
       </Button>
+      {allModelsModal}
     </FormGroup>
   );
 };

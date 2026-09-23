@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   Alert,
   AlertActionCloseButton,
+  Button,
   DropEvent,
   MenuItem,
   MenuList,
@@ -20,6 +21,8 @@ import {
 } from '~/app/Chatbot/const';
 import { AudioTranscriptionState } from '~/app/Chatbot/hooks/useAudioTranscription';
 import { PLAYGROUND_MULTIMODAL_EVENTS } from '~/app/tracking/playgroundMultimodalTrackingConstants';
+
+const IMAGE_CAPABILITY_ALERT_DISMISSED_KEY = 'playground-image-capability-alert-dismissed';
 
 export interface ImageUploadState {
   uploading: boolean;
@@ -46,6 +49,7 @@ interface ChatbotMessageInputProps {
   onRemoveImage: () => void;
   isImageUploadDisabled: boolean;
   imageDisabledTooltip?: string;
+  showImageCapabilityAlert?: boolean;
   isAudioUploadDisabled: boolean;
   audioDisabledTooltip?: string;
   onAudioUpload?: (file: File) => void;
@@ -72,6 +76,7 @@ const ChatbotMessageInput: React.FC<ChatbotMessageInputProps> = ({
   onRemoveImage,
   isImageUploadDisabled,
   imageDisabledTooltip,
+  showImageCapabilityAlert,
   isAudioUploadDisabled,
   audioDisabledTooltip,
   onAudioUpload,
@@ -86,6 +91,9 @@ const ChatbotMessageInput: React.FC<ChatbotMessageInputProps> = ({
 }) => {
   const [isAttachMenuOpen, setIsAttachMenuOpen] = React.useState(false);
   const [validationError, setValidationError] = React.useState<string | null>(null);
+  const [hideImageCapabilityAlert, setHideImageCapabilityAlert] = React.useState(
+    () => window.localStorage.getItem(IMAGE_CAPABILITY_ALERT_DISMISSED_KEY) === 'true',
+  );
   const imageInputRef = React.useRef<HTMLInputElement>(null);
   const audioInputRef = React.useRef<HTMLInputElement>(null);
   const documentInputRef = React.useRef<HTMLInputElement>(null);
@@ -93,7 +101,8 @@ const ChatbotMessageInput: React.FC<ChatbotMessageInputProps> = ({
 
   const audioPhase = audioTranscriptionState?.phase || 'idle';
   const isAudioActive = audioPhase === 'uploading' || audioPhase === 'transcribing';
-  const showAudioChip = isAudioActive || audioPhase === 'ready';
+  const showAudioChip =
+    isAudioActive || audioPhase === 'ready' || audioPhase === 'waiting-for-model';
 
   // PatternFly MessageBar only reads the `value` prop at mount time (internal useState).
   // When messageBarValue changes programmatically (e.g. from transcription), we must
@@ -245,6 +254,8 @@ const ChatbotMessageInput: React.FC<ChatbotMessageInputProps> = ({
     switch (audioTranscriptionState.phase) {
       case 'uploading':
         return `Uploading ${audioTranscriptionState.fileName}`;
+      case 'waiting-for-model':
+        return 'Select a transcription model to transcribe the attached audio file';
       case 'transcribing':
         return `Transcribing audio with speech recognition model`;
       case 'ready':
@@ -391,6 +402,34 @@ const ChatbotMessageInput: React.FC<ChatbotMessageInputProps> = ({
             />
           )}
         </div>
+      )}
+      {imageUploadState.fileName && showImageCapabilityAlert && !hideImageCapabilityAlert && (
+        <Alert
+          variant="info"
+          isInline
+          title="The selected model is not tagged for image input"
+          data-testid="image-capability-alert"
+        >
+          You can still send the image. The model may not support it.{' '}
+          <Button
+            variant="link"
+            isInline
+            onClick={() => {
+              window.localStorage.setItem(IMAGE_CAPABILITY_ALERT_DISMISSED_KEY, 'true');
+              setHideImageCapabilityAlert(true);
+            }}
+          >
+            Don&apos;t show this again
+          </Button>
+        </Alert>
+      )}
+      {audioPhase === 'waiting-for-model' && (
+        <Alert
+          variant="info"
+          isInline
+          title="Select a transcription model to transcribe this audio file"
+          data-testid="audio-model-needed-alert"
+        />
       )}
       <div
         style={{

@@ -148,20 +148,17 @@ describe('TranscriptionModelSection', () => {
       expect(state.configurations[DEFAULT_CONFIG_ID]?.isAsrModelEnabled).toBe(true);
     });
 
-    it('disables the add button with aria-disabled when no ASR models exist', () => {
-      renderWithContext({ aiModels: [mockChatModel] });
-      const btn = screen.getByTestId('add-transcription-model-btn');
-      expect(btn).toHaveAttribute('aria-disabled', 'true');
-    });
-
-    it('does not enable section when clicking disabled add button (N=0)', async () => {
+    it('shows all models when no models are tagged for audio transcription', async () => {
       const user = userEvent.setup();
       renderWithContext({ aiModels: [mockChatModel] });
-
-      await user.click(screen.getByTestId('add-transcription-model-btn'));
-
-      const state = useChatbotConfigStore.getState();
-      expect(state.configurations[DEFAULT_CONFIG_ID]?.isAsrModelEnabled).toBe(false);
+      expect(screen.getByText(/No models are tagged for audio transcription/)).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'View all models' }));
+      await user.click(screen.getByTestId('all-model-option-llama-3-8b'));
+      expect(
+        useChatbotConfigStore.getState().configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel,
+      ).toBe('llama-3-8b');
+      expect(screen.getByTestId('asr-model-selector-toggle')).toHaveTextContent('Llama 3 8B');
+      expect(screen.getByRole('button', { name: 'Edit transcription model' })).toBeInTheDocument();
     });
   });
 
@@ -189,6 +186,19 @@ describe('TranscriptionModelSection', () => {
       await user.click(screen.getByTestId('asr-model-selector-toggle'));
       expect(screen.getByTestId('asr-model-option-whisper-large-v3')).toBeInTheDocument();
       expect(screen.getByTestId('asr-model-option-whisper-small')).toBeInTheDocument();
+    });
+
+    it('recommends tagged models first in the all-models modal', async () => {
+      const user = userEvent.setup();
+      renderWithContext();
+      await user.click(screen.getByRole('button', { name: 'View all models' }));
+      const options = screen.getAllByTestId(/all-model-option-/);
+      expect(options.map((option) => option.getAttribute('data-testid'))).toEqual([
+        'all-model-option-whisper-large-v3',
+        'all-model-option-whisper-small',
+        'all-model-option-llama-3-8b',
+      ]);
+      expect(screen.getAllByText('Recommended')).toHaveLength(2);
     });
 
     it('selects a model and updates store', async () => {
@@ -242,9 +252,12 @@ describe('TranscriptionModelSection', () => {
       });
     });
 
-    it('shows empty state message when no ASR models', () => {
+    it('allows selecting an untagged model when no ASR models exist', async () => {
+      const user = userEvent.setup();
       renderWithContext({ aiModels: [mockChatModel] });
-      expect(screen.getByText(/No ASR models available/)).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'View all models' }));
+      await user.click(screen.getByTestId('all-model-option-llama-3-8b'));
+      expect(screen.getByTestId('asr-model-selector-toggle')).toHaveTextContent('Llama 3 8B');
     });
 
     it('disables the dropdown when no ASR models', () => {
@@ -255,7 +268,7 @@ describe('TranscriptionModelSection', () => {
   });
 
   describe('auto-select and stale detection', () => {
-    it('auto-selects when only one ASR model is available', () => {
+    it('does not select a model before the user makes a choice', () => {
       act(() => {
         useChatbotConfigStore.getState().updateAsrModelEnabled(DEFAULT_CONFIG_ID, true);
       });
@@ -263,11 +276,8 @@ describe('TranscriptionModelSection', () => {
       renderWithContext({ aiModels: [mockChatModel, mockAsrModel] });
 
       const state = useChatbotConfigStore.getState();
-      expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('whisper-large-v3');
-      expect(mockFireMisc).toHaveBeenCalledWith(PLAYGROUND_MULTIMODAL_EVENTS.ASR_MODEL_SELECTED, {
-        modelName: 'Whisper Large V3',
-        isDefaultModel: true,
-      });
+      expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('');
+      expect(mockFireMisc).not.toHaveBeenCalled();
     });
 
     it('shows stale warning when selected model is no longer available', () => {
@@ -295,24 +305,19 @@ describe('TranscriptionModelSection', () => {
       expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('');
     });
 
-    it('clears stale model when ALL ASR models are removed', () => {
+    it('preserves an untagged selected model', () => {
       act(() => {
         useChatbotConfigStore.getState().updateAsrModelEnabled(DEFAULT_CONFIG_ID, true);
-        useChatbotConfigStore
-          .getState()
-          .updateSelectedAsrModel(DEFAULT_CONFIG_ID, 'whisper-large-v3');
+        useChatbotConfigStore.getState().updateSelectedAsrModel(DEFAULT_CONFIG_ID, 'llama-3-8b');
       });
 
       renderWithContext({ aiModels: [mockChatModel] });
 
       const state = useChatbotConfigStore.getState();
-      expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('');
-      expect(
-        screen.getByText(/Previously selected model is no longer available/),
-      ).toBeInTheDocument();
+      expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('llama-3-8b');
     });
 
-    it('clears stale warning when auto-selecting after stale detection', () => {
+    it('shows stale warning until a new model is selected', () => {
       act(() => {
         useChatbotConfigStore.getState().updateAsrModelEnabled(DEFAULT_CONFIG_ID, true);
         useChatbotConfigStore.getState().updateSelectedAsrModel(DEFAULT_CONFIG_ID, 'removed-model');
@@ -321,10 +326,10 @@ describe('TranscriptionModelSection', () => {
       renderWithContext({ aiModels: [mockChatModel, mockAsrModel] });
 
       expect(
-        screen.queryByText(/Previously selected model is no longer available/),
-      ).not.toBeInTheDocument();
+        screen.getByText(/Previously selected model is no longer available/),
+      ).toBeInTheDocument();
       const state = useChatbotConfigStore.getState();
-      expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('whisper-large-v3');
+      expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('');
     });
   });
 
@@ -359,7 +364,7 @@ describe('TranscriptionModelSection', () => {
       expect(screen.getByTestId('asr-model-option-whisper-maas')).toBeInTheDocument();
     });
 
-    it('auto-selects MaaS ASR model when it is the only one', () => {
+    it('does not auto-select the only MaaS ASR model', () => {
       act(() => {
         useChatbotConfigStore.getState().updateAsrModelEnabled(DEFAULT_CONFIG_ID, true);
       });
@@ -367,7 +372,7 @@ describe('TranscriptionModelSection', () => {
       renderWithContext({ aiModels: [mockChatModel], maasModels: [mockMaaSAsrModel] });
 
       const state = useChatbotConfigStore.getState();
-      expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('whisper-maas');
+      expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('');
     });
 
     it('renders subscription dropdown when MaaS ASR model is selected', () => {
