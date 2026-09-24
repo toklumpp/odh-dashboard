@@ -11,11 +11,6 @@ import { ChatbotContext } from '~/app/context/ChatbotContext';
 import { PLAYGROUND_MULTIMODAL_EVENTS } from '~/app/tracking/playgroundMultimodalTrackingConstants';
 import { type AAModelResponse, AIModel } from '~/app/types';
 
-jest.mock('@odh-dashboard/ui-core/components/FieldGroupHelpLabelIcon', () => ({
-  __esModule: true,
-  default: ({ content }: { content: string }) => <span>{content}</span>,
-}));
-
 jest.mock('@odh-dashboard/internal/concepts/analyticsTracking/segmentIOUtils', () => ({
   fireMiscTrackingEvent: jest.fn(),
 }));
@@ -188,6 +183,7 @@ describe('TranscriptionModelSection', () => {
     it('renders the dropdown when enabled', () => {
       renderWithContext();
       expect(screen.getByTestId('asr-model-selector-toggle')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'More info' })).not.toBeInTheDocument();
     });
 
     it('renders the remove button when enabled', () => {

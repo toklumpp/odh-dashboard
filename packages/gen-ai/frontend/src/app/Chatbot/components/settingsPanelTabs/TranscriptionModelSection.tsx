@@ -28,7 +28,6 @@ import {
 import { MinusCircleIcon, PencilAltIcon, PlusCircleIcon, TimesIcon } from '@patternfly/react-icons';
 import { Link } from 'react-router-dom';
 import { fireMiscTrackingEvent } from '@odh-dashboard/internal/concepts/analyticsTracking/segmentIOUtils';
-import FieldGroupHelpLabelIcon from '@odh-dashboard/ui-core/components/FieldGroupHelpLabelIcon';
 import { ChatbotContext } from '~/app/context/ChatbotContext';
 import { PLAYGROUND_MULTIMODAL_EVENTS } from '~/app/tracking/playgroundMultimodalTrackingConstants';
 import { AIModel } from '~/app/types';
@@ -249,14 +248,7 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
   }
 
   return (
-    <FormGroup
-      fieldId="asr-model-selector"
-      label="Transcription model"
-      labelHelp={
-        <FieldGroupHelpLabelIcon content="Transcribes audio files to text before sending to the chat model." />
-      }
-      className="pf-v6-u-mt-md"
-    >
+    <FormGroup fieldId="asr-model-selector" label="Transcription model" className="pf-v6-u-mt-md">
       {selectedAsrModel ? (
         <InputGroup>
           <InputGroupItem isFill>
