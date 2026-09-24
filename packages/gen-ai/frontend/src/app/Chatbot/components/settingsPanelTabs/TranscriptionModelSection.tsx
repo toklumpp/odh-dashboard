@@ -270,18 +270,18 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
           <InputGroupItem>
             <Button
               variant="control"
-              icon={<TimesIcon />}
-              onClick={handleRemove}
-              aria-label="Remove transcription model"
-              data-testid="remove-transcription-model-btn"
+              icon={<PencilAltIcon />}
+              onClick={() => setIsAllModelsOpen(true)}
+              aria-label="Edit transcription model"
             />
           </InputGroupItem>
           <InputGroupItem>
             <Button
               variant="control"
-              icon={<PencilAltIcon />}
-              onClick={() => setIsAllModelsOpen(true)}
-              aria-label="Edit transcription model"
+              icon={<TimesIcon />}
+              onClick={handleRemove}
+              aria-label="Remove transcription model"
+              data-testid="remove-transcription-model-btn"
             />
           </InputGroupItem>
         </InputGroup>

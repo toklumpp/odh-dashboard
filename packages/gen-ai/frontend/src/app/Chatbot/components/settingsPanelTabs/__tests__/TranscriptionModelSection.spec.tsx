@@ -250,6 +250,11 @@ describe('TranscriptionModelSection', () => {
       expect(screen.getByText('Transcription model')).toBeInTheDocument();
       expect(screen.getByTestId('selected-transcription-model')).toHaveValue('Whisper Large V3');
       expect(screen.getByTestId('selected-transcription-model')).toHaveAttribute('readonly');
+      expect(
+        screen
+          .getAllByRole('button', { name: /(Edit|Remove) transcription model/ })
+          .map((button) => button.getAttribute('aria-label')),
+      ).toEqual(['Edit transcription model', 'Remove transcription model']);
       expect(screen.queryByTestId('asr-model-selector-toggle')).not.toBeInTheDocument();
       expect(mockFireMisc).toHaveBeenCalledWith(PLAYGROUND_MULTIMODAL_EVENTS.ASR_MODEL_SELECTED, {
         modelName: 'Whisper Large V3',
