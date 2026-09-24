@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { fireMiscTrackingEvent } from '@odh-dashboard/internal/concepts/analyticsTracking/segmentIOUtils';
 import TranscriptionModelSection from '~/app/Chatbot/components/settingsPanelTabs/TranscriptionModelSection';
 import { useChatbotConfigStore, DEFAULT_CONFIG_ID } from '~/app/Chatbot/store';
@@ -111,13 +112,15 @@ const renderWithContext = (
   configId = DEFAULT_CONFIG_ID,
 ) =>
   render(
-    <ChatbotContext.Provider
-      value={
-        { ...baseContextValue, ...contextOverrides } as React.ContextType<typeof ChatbotContext>
-      }
-    >
-      <TranscriptionModelSection configId={configId} />
-    </ChatbotContext.Provider>,
+    <MemoryRouter>
+      <ChatbotContext.Provider
+        value={
+          { ...baseContextValue, ...contextOverrides } as React.ContextType<typeof ChatbotContext>
+        }
+      >
+        <TranscriptionModelSection configId={configId} />
+      </ChatbotContext.Provider>
+    </MemoryRouter>,
   );
 
 describe('TranscriptionModelSection', () => {
@@ -151,8 +154,21 @@ describe('TranscriptionModelSection', () => {
     it('shows all models when no models are tagged for audio transcription', async () => {
       const user = userEvent.setup();
       renderWithContext({ aiModels: [mockChatModel] });
-      expect(screen.getByText(/No models are tagged for audio transcription/)).toBeInTheDocument();
-      await user.click(screen.getByRole('button', { name: 'View all models' }));
+      expect(screen.getByRole('heading', { name: 'Transcription model' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'No models tagged for audio transcription' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/To enable audio transcription, tag a model with the audio capability in/),
+      ).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Model registry' })).toHaveAttribute(
+        'href',
+        '/ai-hub/models/registry',
+      );
+      await user.click(
+        screen.getByRole('button', { name: 'View all models to select one manually' }),
+      );
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
       await user.click(screen.getByTestId('all-model-option-llama-3-8b'));
       expect(
         useChatbotConfigStore.getState().configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel,

@@ -1,6 +1,9 @@
 import * as React from 'react';
 import {
   Button,
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateFooter,
   FormGroup,
   HelperText,
   HelperTextItem,
@@ -15,8 +18,10 @@ import {
   SelectList,
   SelectOption,
   Spinner,
+  Title,
 } from '@patternfly/react-core';
 import { MinusCircleIcon, PencilAltIcon, PlusCircleIcon } from '@patternfly/react-icons';
+import { Link } from 'react-router-dom';
 import { fireMiscTrackingEvent } from '@odh-dashboard/internal/concepts/analyticsTracking/segmentIOUtils';
 import FieldGroupHelpLabelIcon from '@odh-dashboard/ui-core/components/FieldGroupHelpLabelIcon';
 import { ChatbotContext } from '~/app/context/ChatbotContext';
@@ -194,6 +199,9 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
     return (
       <>
         <div className="pf-v6-u-p-md pf-v6-u-mt-md" data-testid="transcription-model-add-section">
+          <Title headingLevel="h3" size="md">
+            Transcription model
+          </Title>
           {asrModels.length > 0 ? (
             <Button
               ref={addButtonRef}
@@ -205,12 +213,17 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
               Add audio transcription model
             </Button>
           ) : (
-            <>
-              No models are tagged for audio transcription.{' '}
-              <Button variant="link" isInline onClick={() => setIsAllModelsOpen(true)}>
-                View all models
-              </Button>
-            </>
+            <EmptyState headingLevel="h4" titleText="No models tagged for audio transcription">
+              <EmptyStateBody>
+                To enable audio transcription, tag a model with the audio capability in{' '}
+                <Link to="/ai-hub/models/registry">Model registry</Link>.
+              </EmptyStateBody>
+              <EmptyStateFooter>
+                <Button variant="link" onClick={() => setIsAllModelsOpen(true)}>
+                  View all models to select one manually
+                </Button>
+              </EmptyStateFooter>
+            </EmptyState>
           )}
         </div>
         {allModelsModal}
