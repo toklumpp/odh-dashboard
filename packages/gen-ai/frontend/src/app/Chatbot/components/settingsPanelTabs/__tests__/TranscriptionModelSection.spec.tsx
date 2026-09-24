@@ -173,7 +173,7 @@ describe('TranscriptionModelSection', () => {
       expect(
         useChatbotConfigStore.getState().configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel,
       ).toBe('llama-3-8b');
-      expect(screen.getByTestId('asr-model-selector-toggle')).toHaveTextContent('Llama 3 8B');
+      expect(screen.getByTestId('selected-transcription-model')).toHaveValue('Llama 3 8B');
       expect(screen.getByRole('button', { name: 'Edit transcription model' })).toBeInTheDocument();
     });
   });
@@ -247,6 +247,10 @@ describe('TranscriptionModelSection', () => {
 
       const state = useChatbotConfigStore.getState();
       expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('whisper-large-v3');
+      expect(screen.getByText('Transcription model')).toBeInTheDocument();
+      expect(screen.getByTestId('selected-transcription-model')).toHaveValue('Whisper Large V3');
+      expect(screen.getByTestId('selected-transcription-model')).toHaveAttribute('readonly');
+      expect(screen.queryByTestId('asr-model-selector-toggle')).not.toBeInTheDocument();
       expect(mockFireMisc).toHaveBeenCalledWith(PLAYGROUND_MULTIMODAL_EVENTS.ASR_MODEL_SELECTED, {
         modelName: 'Whisper Large V3',
         isDefaultModel: false,
@@ -262,7 +266,24 @@ describe('TranscriptionModelSection', () => {
       });
 
       renderWithContext();
-      expect(screen.getByText(/Audio is transcribed to text/)).toBeInTheDocument();
+      expect(
+        screen.getByText('Audio is transcribed to text, then sent to Llama 3 8B.'),
+      ).toBeInTheDocument();
+    });
+
+    it('opens model selection from the edit control', async () => {
+      const user = userEvent.setup();
+      act(() => {
+        useChatbotConfigStore
+          .getState()
+          .updateSelectedAsrModel(DEFAULT_CONFIG_ID, 'whisper-large-v3');
+      });
+      renderWithContext();
+
+      await user.click(screen.getByRole('button', { name: 'Edit transcription model' }));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      await user.click(screen.getByTestId('all-model-option-whisper-small'));
+      expect(screen.getByTestId('selected-transcription-model')).toHaveValue('Whisper Small');
     });
 
     it('removes the section and clears selection', async () => {
@@ -279,6 +300,7 @@ describe('TranscriptionModelSection', () => {
       const state = useChatbotConfigStore.getState();
       expect(state.configurations[DEFAULT_CONFIG_ID]?.isAsrModelEnabled).toBe(false);
       expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('');
+      expect(screen.queryByTestId('selected-transcription-model')).not.toBeInTheDocument();
     });
   });
 
@@ -294,7 +316,7 @@ describe('TranscriptionModelSection', () => {
       renderWithContext({ aiModels: [mockChatModel] });
       await user.click(screen.getByRole('button', { name: 'View all models' }));
       await user.click(screen.getByTestId('all-model-option-llama-3-8b'));
-      expect(screen.getByTestId('asr-model-selector-toggle')).toHaveTextContent('Llama 3 8B');
+      expect(screen.getByTestId('selected-transcription-model')).toHaveValue('Llama 3 8B');
     });
 
     it('disables the dropdown when no ASR models', () => {

@@ -8,6 +8,8 @@ import {
   FormGroup,
   HelperText,
   HelperTextItem,
+  InputGroup,
+  InputGroupItem,
   Label,
   List,
   ListItem,
@@ -20,9 +22,10 @@ import {
   SelectList,
   SelectOption,
   Spinner,
+  TextInput,
   Title,
 } from '@patternfly/react-core';
-import { MinusCircleIcon, PencilAltIcon, PlusCircleIcon } from '@patternfly/react-icons';
+import { MinusCircleIcon, PencilAltIcon, PlusCircleIcon, TimesIcon } from '@patternfly/react-icons';
 import { Link } from 'react-router-dom';
 import { fireMiscTrackingEvent } from '@odh-dashboard/internal/concepts/analyticsTracking/segmentIOUtils';
 import FieldGroupHelpLabelIcon from '@odh-dashboard/ui-core/components/FieldGroupHelpLabelIcon';
@@ -254,50 +257,78 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
       }
       className="pf-v6-u-mt-md"
     >
-      <div ref={selectContainerRef}>
-        <Select
-          id="asr-model-selector"
-          isOpen={isOpen}
-          selected={selectedAsrModel || undefined}
-          onSelect={handleSelect}
-          onOpenChange={setIsOpen}
-          toggle={(toggleRef) => (
-            <MenuToggle
-              ref={toggleRef}
-              onClick={() => setIsOpen(!isOpen)}
-              isExpanded={isOpen}
-              isDisabled={asrModels.length === 0}
-              isFullWidth
-              data-testid="asr-model-selector-toggle"
-              aria-label="Select a transcription model"
+      {selectedAsrModel ? (
+        <InputGroup>
+          <InputGroupItem isFill>
+            <TextInput
+              id="asr-model-selector"
+              value={toggleLabel}
+              readOnlyVariant="default"
+              data-testid="selected-transcription-model"
+            />
+          </InputGroupItem>
+          <InputGroupItem>
+            <Button
+              variant="control"
+              icon={<TimesIcon />}
+              onClick={handleRemove}
+              aria-label="Remove transcription model"
+              data-testid="remove-transcription-model-btn"
+            />
+          </InputGroupItem>
+          <InputGroupItem>
+            <Button
+              variant="control"
+              icon={<PencilAltIcon />}
+              onClick={() => setIsAllModelsOpen(true)}
+              aria-label="Edit transcription model"
+            />
+          </InputGroupItem>
+        </InputGroup>
+      ) : (
+        <>
+          <div ref={selectContainerRef}>
+            <Select
+              id="asr-model-selector"
+              isOpen={isOpen}
+              selected={undefined}
+              onSelect={handleSelect}
+              onOpenChange={setIsOpen}
+              toggle={(toggleRef) => (
+                <MenuToggle
+                  ref={toggleRef}
+                  onClick={() => setIsOpen(!isOpen)}
+                  isExpanded={isOpen}
+                  isDisabled={asrModels.length === 0}
+                  isFullWidth
+                  data-testid="asr-model-selector-toggle"
+                  aria-label="Select a transcription model"
+                >
+                  {toggleLabel}
+                </MenuToggle>
+              )}
             >
-              {toggleLabel}
-            </MenuToggle>
-          )}
-        >
-          <SelectList>
-            {asrModels.map((model) => (
-              <SelectOption
-                key={model.model_id}
-                value={model.model_id}
-                data-testid={`asr-model-option-${model.model_id}`}
-              >
-                {model.display_name || model.model_id}
-              </SelectOption>
-            ))}
-          </SelectList>
-        </Select>
+              <SelectList>
+                {asrModels.map((model) => (
+                  <SelectOption
+                    key={model.model_id}
+                    value={model.model_id}
+                    data-testid={`asr-model-option-${model.model_id}`}
+                  >
+                    {model.display_name || model.model_id}
+                  </SelectOption>
+                ))}
+              </SelectList>
+            </Select>
+          </div>
+          <Button variant="link" isInline onClick={() => setIsAllModelsOpen(true)}>
+            View all models
+          </Button>
+        </>
+      )}
+      <div aria-live="polite" aria-atomic="true">
+        {helperContent && <HelperText className="pf-v6-u-mt-xs">{helperContent}</HelperText>}
       </div>
-      <Button
-        variant="link"
-        isInline
-        icon={selectedAsrModel && asrModels.length === 0 ? <PencilAltIcon /> : undefined}
-        onClick={() => setIsAllModelsOpen(true)}
-      >
-        {selectedAsrModel && asrModels.length === 0
-          ? 'Edit transcription model'
-          : 'View all models'}
-      </Button>
       {selectedAsrModel &&
         allModels.find((m) => m.model_id === selectedAsrModel)?.model_source_type === 'maas' && (
           <SubscriptionDropdown
@@ -310,20 +341,18 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
             className="pf-v6-u-mt-sm"
           />
         )}
-      <div aria-live="polite" aria-atomic="true">
-        {helperContent && <HelperText className="pf-v6-u-mt-xs">{helperContent}</HelperText>}
-      </div>
-      <Button
-        variant="link"
-        icon={<MinusCircleIcon />}
-        onClick={handleRemove}
-        className="pf-v6-u-mt-sm"
-        data-testid="remove-transcription-model-btn"
-        aria-label="Remove transcription model"
-        isDisabled={false}
-      >
-        Remove
-      </Button>
+      {!selectedAsrModel && (
+        <Button
+          variant="link"
+          icon={<MinusCircleIcon />}
+          onClick={handleRemove}
+          className="pf-v6-u-mt-sm"
+          data-testid="remove-transcription-model-btn"
+          aria-label="Remove transcription model"
+        >
+          Remove
+        </Button>
+      )}
       {allModelsModal}
     </FormGroup>
   );
