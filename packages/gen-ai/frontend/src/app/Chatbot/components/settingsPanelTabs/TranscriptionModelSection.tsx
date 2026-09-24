@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  Alert,
   Button,
   EmptyState,
   EmptyStateBody,
@@ -13,6 +14,7 @@ import {
   MenuToggle,
   Modal,
   ModalBody,
+  ModalFooter,
   ModalHeader,
   Select,
   SelectList,
@@ -174,6 +176,12 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
     <Modal isOpen={isAllModelsOpen} onClose={() => setIsAllModelsOpen(false)} variant="medium">
       <ModalHeader title="Select transcription model" />
       <ModalBody>
+        <Alert
+          variant="info"
+          isInline
+          title="Models tagged with audio are verified for audio transcription. Select any other model to test it manually."
+          className="pf-v6-u-mb-md"
+        />
         <List isPlain>
           {[...asrModels, ...allModels.filter((m) => !asrModels.includes(m))].map((model) => (
             <ListItem key={model.model_id}>
@@ -188,10 +196,16 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
                 {model.display_name || model.model_id}
               </Button>{' '}
               {asrModels.includes(model) && <Label color="blue">Recommended</Label>}
+              {model.description && <div>{model.description}</div>}
             </ListItem>
           ))}
         </List>
       </ModalBody>
+      <ModalFooter>
+        <Button variant="link" onClick={() => setIsAllModelsOpen(false)}>
+          Cancel
+        </Button>
+      </ModalFooter>
     </Modal>
   );
 

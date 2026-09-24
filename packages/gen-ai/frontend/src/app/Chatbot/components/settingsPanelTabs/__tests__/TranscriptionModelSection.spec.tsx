@@ -32,7 +32,7 @@ const mockAsrModel = {
   api_protocol: 'REST',
   version: '1',
   usecase: 'asr',
-  description: '',
+  description: 'Transcribes spoken audio',
   endpoints: ['http://whisper:80'],
   status: 'Running',
 } as AIModel;
@@ -62,7 +62,7 @@ const mockChatModel = {
   api_protocol: 'REST',
   version: '1',
   usecase: 'llm',
-  description: '',
+  description: 'General-purpose chat model',
   endpoints: ['http://llama:8080'],
   status: 'Running',
 } as AIModel;
@@ -215,6 +215,27 @@ describe('TranscriptionModelSection', () => {
         'all-model-option-llama-3-8b',
       ]);
       expect(screen.getAllByText('Recommended')).toHaveLength(2);
+    });
+
+    it('shows model descriptions and guidance and closes without selecting on Cancel', async () => {
+      const user = userEvent.setup();
+      renderWithContext();
+
+      await user.click(screen.getByRole('button', { name: 'View all models' }));
+      expect(screen.getByText('Select transcription model')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Models tagged with audio are verified for audio transcription. Select any other model to test it manually.',
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getByText('Transcribes spoken audio')).toBeInTheDocument();
+      expect(screen.getByText('General-purpose chat model')).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        useChatbotConfigStore.getState().configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel,
+      ).toBe('');
     });
 
     it('selects a model and updates store', async () => {
