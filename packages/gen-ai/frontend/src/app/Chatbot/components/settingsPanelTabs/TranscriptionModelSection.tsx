@@ -167,6 +167,7 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
             <ListItem key={model.model_id}>
               <Button
                 variant="link"
+                isInline
                 onClick={() => {
                   updateAsrModelEnabled(configId, true);
                   handleSelect(model.model_id);
@@ -182,7 +183,7 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
         </List>
       </ModalBody>
       <ModalFooter>
-        <Button variant="link" onClick={() => setIsAllModelsOpen(false)}>
+        <Button variant="link" isInline onClick={() => setIsAllModelsOpen(false)}>
           Cancel
         </Button>
       </ModalFooter>
