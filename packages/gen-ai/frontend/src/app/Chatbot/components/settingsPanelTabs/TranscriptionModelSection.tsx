@@ -192,8 +192,11 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
   if (!isAsrModelEnabled || !selectedAsrModel) {
     return (
       <>
+        <Title headingLevel="h3" size="lg" className="pf-v6-u-mt-md pf-v6-u-mb-sm">
+          Transcription model
+        </Title>
         <div
-          className="pf-v6-u-p-md pf-v6-u-mt-md"
+          className="pf-v6-u-p-md"
           style={{
             border: '1px dashed var(--pf-t--global--border--color--default)',
             borderRadius: 'var(--pf-t--global--border--radius--small)',
@@ -201,9 +204,6 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
           }}
           data-testid="transcription-model-add-section"
         >
-          <Title headingLevel="h3" size="lg">
-            Transcription model
-          </Title>
           {asrModels.length > 0 ? (
             <Button
               ref={addButtonRef}
@@ -238,7 +238,7 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
 
   return (
     <FormGroup fieldId="asr-model-selector" className="pf-v6-u-mt-md">
-      <Title headingLevel="h3" size="lg" className="pf-v6-u-pl-md pf-v6-u-pt-md pf-v6-u-mb-sm">
+      <Title headingLevel="h3" size="lg" className="pf-v6-u-mb-sm">
         Transcription model
       </Title>
       <InputGroup>

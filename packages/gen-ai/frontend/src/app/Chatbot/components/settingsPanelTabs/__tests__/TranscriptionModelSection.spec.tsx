@@ -133,6 +133,9 @@ describe('TranscriptionModelSection', () => {
     it('shows the heading and add action when tagged models exist', () => {
       renderWithContext();
       expect(screen.getByRole('heading', { name: 'Transcription model' })).toHaveClass('pf-m-lg');
+      expect(screen.getByTestId('transcription-model-add-section')).not.toContainElement(
+        screen.getByRole('heading', { name: 'Transcription model' }),
+      );
       expect(screen.getByTestId('add-transcription-model-btn')).toBeInTheDocument();
       expect(
         screen.queryByRole('heading', { name: 'No models tagged for audio transcription' }),
