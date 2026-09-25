@@ -193,7 +193,7 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
     return (
       <>
         <div className="pf-v6-u-p-md pf-v6-u-mt-md" data-testid="transcription-model-add-section">
-          <Title headingLevel="h3" size="md">
+          <Title headingLevel="h3" size="lg">
             Transcription model
           </Title>
           {asrModels.length > 0 ? (
@@ -229,15 +229,15 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
   }
 
   return (
-    <FormGroup
-      fieldId="asr-model-selector"
-      label={<span className="pf-v6-c-title pf-m-md">Transcription model</span>}
-      className="pf-v6-u-mt-md"
-    >
+    <FormGroup fieldId="asr-model-selector" className="pf-v6-u-mt-md">
+      <Title headingLevel="h3" size="lg" className="pf-v6-u-pl-md pf-v6-u-pt-md pf-v6-u-mb-sm">
+        Transcription model
+      </Title>
       <InputGroup>
         <InputGroupItem isFill>
           <TextInput
             id="asr-model-selector"
+            aria-label="Transcription model"
             value={toggleLabel}
             readOnlyVariant="default"
             data-testid="selected-transcription-model"

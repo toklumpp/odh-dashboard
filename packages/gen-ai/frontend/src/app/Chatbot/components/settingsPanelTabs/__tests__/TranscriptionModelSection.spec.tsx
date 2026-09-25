@@ -132,7 +132,7 @@ describe('TranscriptionModelSection', () => {
   describe('State 1: No model selected', () => {
     it('shows the heading and add action when tagged models exist', () => {
       renderWithContext();
-      expect(screen.getByRole('heading', { name: 'Transcription model' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Transcription model' })).toHaveClass('pf-m-lg');
       expect(screen.getByTestId('add-transcription-model-btn')).toBeInTheDocument();
       expect(
         screen.queryByRole('heading', { name: 'No models tagged for audio transcription' }),
@@ -243,8 +243,11 @@ describe('TranscriptionModelSection', () => {
 
       const state = useChatbotConfigStore.getState();
       expect(state.configurations[DEFAULT_CONFIG_ID]?.selectedAsrModel).toBe('whisper-large-v3');
-      expect(screen.getByText('Transcription model')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Transcription model' })).toHaveClass('pf-m-lg');
       expect(screen.getByTestId('selected-transcription-model')).toHaveValue('Whisper Large V3');
+      expect(screen.getByTestId('selected-transcription-model')).toHaveAccessibleName(
+        'Transcription model',
+      );
       expect(screen.getByTestId('selected-transcription-model')).toHaveAttribute('readonly');
       expect(
         screen
