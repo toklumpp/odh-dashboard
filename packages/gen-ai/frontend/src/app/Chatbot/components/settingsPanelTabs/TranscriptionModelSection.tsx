@@ -167,7 +167,6 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
             <ListItem key={model.model_id}>
               <Button
                 variant="link"
-                isInline
                 onClick={() => {
                   updateAsrModelEnabled(configId, true);
                   handleSelect(model.model_id);
@@ -177,13 +176,13 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
                 {model.display_name || model.model_id}
               </Button>{' '}
               {asrModels.includes(model) && <Label color="blue">Recommended</Label>}
-              {model.description && <div>{model.description}</div>}
+              {model.description && <div className="pf-v6-u-pl-sm">{model.description}</div>}
             </ListItem>
           ))}
         </List>
       </ModalBody>
       <ModalFooter>
-        <Button variant="link" isInline onClick={() => setIsAllModelsOpen(false)}>
+        <Button variant="link" className="pf-v6-u-pl-0" onClick={() => setIsAllModelsOpen(false)}>
           Cancel
         </Button>
       </ModalFooter>
