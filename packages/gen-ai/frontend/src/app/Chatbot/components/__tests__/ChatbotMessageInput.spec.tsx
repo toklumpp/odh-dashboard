@@ -721,6 +721,19 @@ describe('ChatbotMessageInput', () => {
       transcribedText: '',
     };
 
+    it('explains where to select a model when audio is waiting for one', () => {
+      render(
+        <ChatbotMessageInput
+          {...defaultProps}
+          audioTranscriptionState={{ ...defaultAudioState, phase: 'waiting-for-model' }}
+        />,
+      );
+
+      expect(screen.getByTestId('audio-model-needed-alert')).toHaveTextContent(
+        'Audio files require a transcription model. Select one under the Model tab in Settings.',
+      );
+    });
+
     it('clicking "Upload audio" triggers the hidden audio file input and fires tracking event', async () => {
       const user = userEvent.setup();
       const mockOnAudioUpload = jest.fn();

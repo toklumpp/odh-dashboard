@@ -427,7 +427,7 @@ const ChatbotMessageInput: React.FC<ChatbotMessageInputProps> = ({
         <Alert
           variant="info"
           isInline
-          title="Select a transcription model to transcribe this audio file"
+          title="Audio files require a transcription model. Select one under the Model tab in Settings."
           data-testid="audio-model-needed-alert"
         />
       )}
