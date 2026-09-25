@@ -154,7 +154,7 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
 
   const allModelsModal = (
     <Modal isOpen={isAllModelsOpen} onClose={() => setIsAllModelsOpen(false)} variant="medium">
-      <ModalHeader title="Select transcription model" />
+      <ModalHeader title="Select audio transcription model" />
       <ModalBody>
         <Alert
           variant="info"

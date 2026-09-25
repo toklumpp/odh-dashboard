@@ -216,7 +216,9 @@ describe('TranscriptionModelSection', () => {
       renderWithContext();
 
       await user.click(screen.getByTestId('add-transcription-model-btn'));
-      expect(screen.getByText('Select transcription model')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Select audio transcription model' }),
+      ).toBeInTheDocument();
       expect(
         screen.getByText(
           'Models tagged with audio are verified for audio transcription. Select any other model to test it manually.',
