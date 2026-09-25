@@ -229,7 +229,11 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
   }
 
   return (
-    <FormGroup fieldId="asr-model-selector" label="Transcription model" className="pf-v6-u-mt-md">
+    <FormGroup
+      fieldId="asr-model-selector"
+      label={<span className="pf-v6-c-title pf-m-md">Transcription model</span>}
+      className="pf-v6-u-mt-md"
+    >
       <InputGroup>
         <InputGroupItem isFill>
           <TextInput
