@@ -192,7 +192,15 @@ const TranscriptionModelSection: React.FunctionComponent<TranscriptionModelSecti
   if (!isAsrModelEnabled || !selectedAsrModel) {
     return (
       <>
-        <div className="pf-v6-u-p-md pf-v6-u-mt-md" data-testid="transcription-model-add-section">
+        <div
+          className="pf-v6-u-p-md pf-v6-u-mt-md"
+          style={{
+            border: '1px dashed var(--pf-t--global--border--color--default)',
+            borderRadius: 'var(--pf-t--global--border--radius--small)',
+            textAlign: 'center',
+          }}
+          data-testid="transcription-model-add-section"
+        >
           <Title headingLevel="h3" size="lg">
             Transcription model
           </Title>
