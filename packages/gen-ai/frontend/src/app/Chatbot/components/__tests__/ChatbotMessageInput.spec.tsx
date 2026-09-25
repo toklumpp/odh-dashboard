@@ -196,6 +196,9 @@ describe('ChatbotMessageInput', () => {
     expect(screen.getByTestId('image-capability-alert')).toHaveTextContent(
       "This model isn't tagged for vision capabilities, which can lead to unexpected output. To identify supported models faster, tag this model's capabilities in the Model Registry or contact your admin.",
     );
+    expect(
+      screen.getByRole('button', { name: "Don't show this again" }).closest('p'),
+    ).not.toHaveTextContent("This model isn't tagged for vision capabilities");
     await user.click(screen.getByRole('button', { name: "Don't show this again" }));
     expect(screen.queryByTestId('image-capability-alert')).not.toBeInTheDocument();
     expect(window.localStorage.getItem('playground-image-capability-alert-dismissed')).toBe('true');

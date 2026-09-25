@@ -412,17 +412,19 @@ const ChatbotMessageInput: React.FC<ChatbotMessageInputProps> = ({
         >
           This model isn&apos;t tagged for vision capabilities, which can lead to unexpected output.
           To identify supported models faster, tag this model&apos;s capabilities in the Model
-          Registry or contact your admin.{' '}
-          <Button
-            variant="link"
-            isInline
-            onClick={() => {
-              window.localStorage.setItem(IMAGE_CAPABILITY_ALERT_DISMISSED_KEY, 'true');
-              setHideImageCapabilityAlert(true);
-            }}
-          >
-            Don&apos;t show this again
-          </Button>
+          Registry or contact your admin.
+          <p className="pf-v6-u-mt-sm">
+            <Button
+              variant="link"
+              isInline
+              onClick={() => {
+                window.localStorage.setItem(IMAGE_CAPABILITY_ALERT_DISMISSED_KEY, 'true');
+                setHideImageCapabilityAlert(true);
+              }}
+            >
+              Don&apos;t show this again
+            </Button>
+          </p>
         </Alert>
       )}
       {audioPhase === 'waiting-for-model' && (
