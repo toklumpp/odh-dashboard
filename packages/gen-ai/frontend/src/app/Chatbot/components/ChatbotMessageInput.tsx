@@ -407,10 +407,12 @@ const ChatbotMessageInput: React.FC<ChatbotMessageInputProps> = ({
         <Alert
           variant="info"
           isInline
-          title="The selected model is not tagged for image input"
+          title="Vision capability not tagged"
           data-testid="image-capability-alert"
         >
-          You can still send the image. The model may not support it.{' '}
+          This model isn&apos;t tagged for vision capabilities, which can lead to unexpected output.
+          To identify supported models faster, tag this model&apos;s capabilities in the Model
+          Registry or contact your admin.{' '}
           <Button
             variant="link"
             isInline

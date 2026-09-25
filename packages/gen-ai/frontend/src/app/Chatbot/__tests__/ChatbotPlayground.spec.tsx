@@ -1191,7 +1191,7 @@ describe('ChatbotPlayground — compare mode attachments', () => {
       });
     });
     expect(screen.getByTestId('vision-file-preview')).toBeInTheDocument();
-    expect(screen.queryByTestId('image-capability-alert')).not.toBeInTheDocument();
+    expect(screen.getByTestId('image-capability-alert')).toBeInTheDocument();
   });
 
   it('audio file input is rendered in compare mode', () => {

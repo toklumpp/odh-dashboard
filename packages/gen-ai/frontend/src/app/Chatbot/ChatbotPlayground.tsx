@@ -1154,7 +1154,7 @@ const ChatbotPlayground: React.FC<ChatbotPlaygroundProps> = ({
                   imageDisabledTooltip={
                     hasImageInConversation ? 'Only one image per conversation.' : undefined
                   }
-                  showImageCapabilityAlert={hasVisionModel && !allModelsHaveVision}
+                  showImageCapabilityAlert={Boolean(primarySelectedModel) && !allModelsHaveVision}
                   isAudioUploadDisabled={false}
                   onAudioUpload={handleAudioUpload}
                   audioTranscriptionState={audioTranscription.state}
